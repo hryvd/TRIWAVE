@@ -48,6 +48,32 @@ module.exports = async (req, res) => {
     await redis.rpush(`q:${to}`, JSON.stringify({ t: Date.now(), m: msg }));
     await redis.lpush('log', `${new Date().toISOString()}  -> ${to}: ${msg}`);
     await redis.ltrim('log', 0, 49);
+
+    if (to === 'terminal' && msg.startsWith('REQUEST,')) {
+      const parts = msg.split(',');
+      const reqId = parts[1] || '001';
+      await redis.set('active_request', JSON.stringify({
+        reqId: reqId,
+        raw: msg,
+        timestamp: Date.now(),
+        status: 'pending',
+        acceptedBy: null
+      }));
+    } else if (to === 'school' && msg.startsWith('DRIVER,')) {
+      const parts = msg.split(',');
+      const reqId = parts[1] || '';
+      const driverId = parts[2] || '';
+      await redis.set('active_request', JSON.stringify({
+        reqId: reqId,
+        raw: msg,
+        timestamp: Date.now(),
+        status: 'accepted',
+        acceptedBy: driverId
+      }));
+      // Clear any waiting request from the terminal queue so hardware stops alerting
+      await redis.del('q:terminal');
+    }
+
     res.status(200).send('ok');
   } catch (err) {
     console.error('Error sending message:', err);

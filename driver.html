@@ -1,0 +1,1042 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f19">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>TRIWAVE Driver Dispatch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #090d16;
+    --card: #121826;
+    --card-border: #1e293b;
+    --card-active: #182234;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --primary: #0284c7;
+    --primary-glow: rgba(2, 132, 199, 0.4);
+    --accent: #06b6d4;
+    --success: #10b981;
+    --success-glow: rgba(16, 185, 129, 0.35);
+    --warning: #f59e0b;
+    --warning-glow: rgba(245, 158, 11, 0.4);
+    --danger: #ef4444;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: env(safe-area-inset-top, 12px) 16px env(safe-area-inset-bottom, 16px) 16px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0 16px 0;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-logo {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, #0284c7, #06b6d4);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 4px 12px var(--primary-glow);
+  }
+  .brand-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #fff;
+  }
+  .brand-sub {
+    font-size: 0.72rem;
+    color: var(--accent);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--success);
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--success);
+    animation: pulse-dot 2s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  }
+
+  /* Driver Profile Card */
+  .driver-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-top: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  }
+  .driver-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .driver-avatar {
+    width: 48px;
+    height: 48px;
+    background: #1e293b;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+  .driver-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #fff;
+  }
+  .driver-meta {
+    display: flex;
+    gap: 8px;
+    margin-top: 3px;
+  }
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-weight: 700;
+  }
+  .badge-id { background: rgba(2, 132, 199, 0.25); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.4); }
+  .badge-plate { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); }
+  .btn-switch {
+    background: transparent;
+    border: 1px solid #334155;
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-switch:active { background: #1e293b; color: #fff; }
+
+  /* Audio Permission Banner */
+  .audio-banner {
+    background: rgba(2, 132, 199, 0.15);
+    border: 1px solid rgba(2, 132, 199, 0.35);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.82rem;
+  }
+  .btn-audio-toggle {
+    background: #0284c7;
+    border: none;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  /* Main Dynamic Section */
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-top: 16px;
+  }
+
+  /* State: Idle / Radar */
+  .state-box {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 28px 20px;
+    text-align: center;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .radar-container {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .radar-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid rgba(6, 182, 212, 0.2);
+    animation: radar-pulse 3s infinite ease-out;
+  }
+  .radar-ring:nth-child(2) { animation-delay: 1s; }
+  .radar-ring:nth-child(3) { animation-delay: 2s; }
+  .radar-center {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0369a1, #0891b2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    box-shadow: 0 0 25px rgba(6, 182, 212, 0.5);
+    z-index: 2;
+  }
+
+  @keyframes radar-pulse {
+    0% { transform: scale(0.5); opacity: 0.8; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+
+  .state-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .state-desc {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    max-width: 280px;
+    line-height: 1.45;
+  }
+
+  /* State: Incoming Alert (Urgent) */
+  .alert-box {
+    background: linear-gradient(180deg, #1e1b18 0%, #121826 100%);
+    border: 2px solid var(--warning);
+    border-radius: 20px;
+    padding: 24px 18px;
+    width: 100%;
+    text-align: center;
+    animation: alert-glow 1.5s infinite alternate ease-in-out;
+    box-shadow: 0 0 35px var(--warning-glow);
+  }
+
+  @keyframes alert-glow {
+    0% { border-color: rgba(245, 158, 11, 0.6); box-shadow: 0 0 20px rgba(245, 158, 11, 0.3); }
+    100% { border-color: #f59e0b; box-shadow: 0 0 40px rgba(245, 158, 11, 0.6); }
+  }
+
+  .alert-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #fbbf24;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+  }
+  .req-id-large {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 3rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 6px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  }
+  .req-origin {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #38bdf8;
+    margin-bottom: 16px;
+  }
+  .timer-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+  }
+
+  /* Big Action Button */
+  .btn-accept {
+    width: 100%;
+    height: 64px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    border-radius: 16px;
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 8px 24px var(--success-glow);
+    transition: transform 0.1s, box-shadow 0.2s;
+  }
+  .btn-accept:active {
+    transform: scale(0.98);
+    box-shadow: 0 4px 12px var(--success-glow);
+  }
+
+  /* State: Accepted / Assigned */
+  .assigned-box {
+    background: linear-gradient(180deg, #0d231a 0%, #121826 100%);
+    border: 2px solid var(--success);
+    border-radius: 20px;
+    padding: 28px 18px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 0 30px var(--success-glow);
+  }
+  .assigned-icon {
+    width: 68px;
+    height: 68px;
+    background: rgba(16, 185, 129, 0.2);
+    border: 2px solid var(--success);
+    border-radius: 50%;
+    margin: 0 auto 16px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+  }
+  .btn-complete {
+    width: 100%;
+    height: 52px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-top: 20px;
+    cursor: pointer;
+  }
+  .btn-complete:active { background: #334155; }
+
+  /* Bottom Controls */
+  .bottom-bar {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .btn-tool {
+    flex: 1;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 10px;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .btn-tool:active { background: #334155; color: #fff; }
+
+  /* Driver Selection Modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .modal-sheet {
+    background: var(--card);
+    border-top: 1px solid var(--card-border);
+    border-radius: 24px 24px 0 0;
+    max-height: 82vh;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 18px env(safe-area-inset-bottom, 20px) 18px;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .modal-overlay.open .modal-sheet {
+    transform: translateY(0);
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .modal-title { font-size: 1.15rem; font-weight: 800; color: #fff; }
+  .btn-close {
+    background: #1e293b;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+  .search-input {
+    background: #090d16;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: #fff;
+    font-size: 0.95rem;
+    width: 100%;
+    margin-bottom: 12px;
+    outline: none;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .driver-list {
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 10px;
+  }
+  .driver-item {
+    background: #0d121f;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .driver-item:active, .driver-item.active {
+    background: #1e293b;
+    border-color: var(--accent);
+  }
+  .driver-item-info { display: flex; flex-direction: column; gap: 3px; }
+  .driver-item-name { font-weight: 700; font-size: 0.95rem; color: #fff; }
+  .driver-item-badges { display: flex; gap: 6px; }
+
+  /* Settings Modal */
+  .input-label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; }
+  .settings-row { margin-bottom: 14px; }
+</style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">🛺</div>
+      <div>
+        <div class="brand-title">TRIWAVE</div>
+        <div class="brand-sub">Driver Mobile Dispatch</div>
+      </div>
+    </div>
+    <div id="statusPill" class="status-pill">
+      <div class="status-dot"></div>
+      <span id="statusPillText">Online</span>
+    </div>
+  </header>
+
+  <!-- Driver Profile Header Card -->
+  <div class="driver-card" id="driverCard">
+    <div class="driver-info">
+      <div class="driver-avatar">🪪</div>
+      <div>
+        <div class="driver-name" id="profileName">Loading driver...</div>
+        <div class="driver-meta">
+          <span class="badge badge-id" id="profileId">ID ---</span>
+          <span class="badge badge-plate" id="profilePlate">---</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn-switch" onclick="openDriverModal()">Switch</button>
+  </div>
+
+  <!-- Audio Enable Banner -->
+  <div class="audio-banner" id="audioBanner">
+    <span>🔊 Tap to enable loud dispatch sounds</span>
+    <button class="btn-audio-toggle" onclick="unlockAudio()">Turn On</button>
+  </div>
+
+  <!-- Main Dispatch Section -->
+  <main id="mainContent">
+
+    <!-- State 1: IDLE / MONITORING -->
+    <div id="viewIdle" class="state-box">
+      <div class="radar-container">
+        <div class="radar-ring"></div>
+        <div class="radar-ring"></div>
+        <div class="radar-ring"></div>
+        <div class="radar-center">📡</div>
+      </div>
+      <div class="state-title">Waiting for Requests</div>
+      <div class="state-desc">
+        Monitoring BatStateU School Station. Your phone will chime and vibrate when a student requests a ride.
+      </div>
+    </div>
+
+    <!-- State 2: INCOMING REQUEST (ALERT) -->
+    <div id="viewAlert" class="alert-box" style="display: none;">
+      <div class="alert-header">
+        <span>⚡ Incoming Ride Call</span>
+      </div>
+      <div class="req-id-large" id="alertReqId">#001</div>
+      <div class="req-origin">📍 BatStateU School Gate</div>
+      <div class="timer-pill">
+        <span>⏱️ Expires in:</span>
+        <span id="alertCountdown" style="color:#fbbf24; font-weight:700;">3:00</span>
+      </div>
+
+      <button id="btnAccept" class="btn-accept" onclick="acceptActiveRequest()">
+        <span>🛵 ACCEPT RIDE & RESPOND</span>
+      </button>
+
+      <div style="margin-top: 14px; font-size: 0.8rem; color: var(--text-muted);">
+        Accepting will immediately notify the School Station TFT display with your name & plate.
+      </div>
+    </div>
+
+    <!-- State 3: ASSIGNED / ACCEPTED -->
+    <div id="viewAssigned" class="assigned-box" style="display: none;">
+      <div class="assigned-icon">✅</div>
+      <div style="font-size:0.85rem; font-weight:700; color:var(--success); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">
+        Ride Dispatched
+      </div>
+      <div class="req-id-large" id="assignedReqId">#001</div>
+      <div style="font-size:1.05rem; font-weight:700; color:#fff; margin-bottom:12px;">
+        Head to BatStateU School Station!
+      </div>
+      <div style="background:#090d16; border:1px solid #334155; border-radius:12px; padding:12px; text-align:left; font-size:0.88rem; line-height:1.6; color:var(--text-secondary);">
+        <div>👤 <strong>Driver:</strong> <span id="assignedDriverName" style="color:#fff;"></span></div>
+        <div>🔢 <strong>Driver ID:</strong> <span id="assignedDriverId" style="color:#38bdf8;"></span></div>
+        <div>🏍️ <strong>Plate Number:</strong> <span id="assignedPlate" style="color:#fbbf24;"></span></div>
+      </div>
+      <button class="btn-complete" onclick="finishRide()">Finish / Ready for Next Ride</button>
+    </div>
+
+    <!-- State 4: TAKEN BY ANOTHER DRIVER -->
+    <div id="viewTaken" class="state-box" style="display: none;">
+      <div style="font-size:48px; margin-bottom:12px;">⚠️</div>
+      <div class="state-title" style="color:#f59e0b;">Request Already Taken</div>
+      <div class="state-desc" id="takenMessage" style="margin-bottom:20px;">
+        Another tricycle driver has already answered this request.
+      </div>
+      <button class="btn-switch" style="padding:10px 20px;" onclick="resetToIdle()">Back to Waiting</button>
+    </div>
+
+  </main>
+
+  <!-- Bottom Utility Bar -->
+  <div class="bottom-bar">
+    <button class="btn-tool" onclick="testIncomingAlert()">
+      <span>🧪 Simulate Call</span>
+    </button>
+    <button class="btn-tool" onclick="openSettingsModal()">
+      <span>⚙️ Settings</span>
+    </button>
+    <a href="/" class="btn-tool">
+      <span>📊 Station Log</span>
+    </a>
+  </div>
+
+  <!-- Modal: Driver Picker -->
+  <div class="modal-overlay" id="driverModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title">Select Your Driver Profile</div>
+        <button class="btn-close" onclick="closeDriverModal()">&times;</button>
+      </div>
+      <input type="text" id="driverSearch" class="search-input" placeholder="Search by Name, Plate, or 3-digit ID..." oninput="filterDrivers()">
+      <div class="driver-list" id="driverListContainer">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Settings (API Key & Host) -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title">System Settings</div>
+        <button class="btn-close" onclick="closeSettingsModal()">&times;</button>
+      </div>
+      <div class="settings-row">
+        <div class="input-label">API Key</div>
+        <input type="password" id="inputApiKey" class="search-input" placeholder="triwave_secret_key">
+      </div>
+      <div class="settings-row">
+        <div class="input-label">Sound Test</div>
+        <button class="btn-tool" style="width:100%;" onclick="playChime(true)">🔊 Play Alert Sound</button>
+      </div>
+      <button class="btn-accept" style="height:48px; font-size:1rem; margin-top:10px;" onclick="saveSettings()">Save & Close</button>
+    </div>
+  </div>
+
+<script>
+  // Driver Registry (From drivers.h)
+  const DRIVERS = [
+    { id: "018", name: "Domingo Camacho", plate: "8281WU", contact: "09077729662" },
+    { id: "055", name: "Jayvie Bobadilla", plate: "3180TJ", contact: "09675729010" },
+    { id: "134", name: "Cristopher Deleso", plate: "N998UG", contact: "09075117066" },
+    { id: "058", name: "Joaquin Bobadilla", plate: "D5464AG", contact: "09918839607" },
+    { id: "005", name: "Isagani Gutierrez", plate: "443DXQ", contact: "09603797774" },
+    { id: "031", name: "Resty Garcia", plate: "6869VQ", contact: "09956189602" },
+    { id: "129", name: "Dustin Ron Godoy", plate: "0216MT", contact: "09915969000" },
+    { id: "024", name: "Ryan Villena", plate: "72612", contact: "09606813164" },
+    { id: "012", name: "Fagie De Gracia", plate: "N249RN", contact: "09291748376" },
+    { id: "013", name: "Felix Dapog", plate: "5447WN", contact: "09369786112" },
+    { id: "094", name: "Joseph Bobadilla", plate: "D927GA", contact: "09162903236" },
+    { id: "003", name: "Michael Bobadilla", plate: "D20845", contact: "09173372357" },
+    { id: "030", name: "Isaias Arellano", plate: "01X894", contact: "09303455899" },
+    { id: "132", name: "James Mercado", plate: "236NBJ", contact: "09916671889" },
+    { id: "124", name: "Alex Asi", plate: "D3U196", contact: "09362744936" },
+    { id: "019", name: "Jun Bauan", plate: "OLU176", contact: "09289479278" },
+    { id: "073", name: "Ricardo Sarmiento", plate: "N689UG", contact: "09926508774" },
+    { id: "011", name: "Sergio Bobadilla", plate: "D7V579", contact: "09922093728" },
+    { id: "057", name: "Roberto Arbes", plate: "476QUV", contact: "09386719035" },
+    { id: "130", name: "Marvin Reyes", plate: "Q4374", contact: "09454565227" },
+    { id: "118", name: "Dhondi Alda", plate: "N311AB", contact: "09957237245" },
+    { id: "052", name: "Mark Anthony Pisig", plate: "794ORG", contact: "09708204282" },
+    { id: "008", name: "Manuel Dapog", plate: "VN3544", contact: "09752003709" },
+    { id: "061", name: "Jonathan Panganiban", plate: "8670TN", contact: "09293930167" },
+    { id: "083", name: "Randy Dimaano", plate: "1930ZJ", contact: "09851586873" },
+    { id: "049", name: "Bernie Camacho", plate: "DKT601", contact: "09926268859" },
+    { id: "071", name: "Florante Nable", plate: "10K189", contact: "09293952879" },
+    { id: "063", name: "Resty Berberabe", plate: "809DL4", contact: "09983586262" },
+    { id: "054", name: "Apolinario Capio", plate: "02948Y", contact: "09614163389" },
+    { id: "099", name: "Larry Ilagan", plate: "03N573", contact: "09773994247" },
+    { id: "001", name: "Fernan Panganiban", plate: "D377NN", contact: "09482358837" },
+  ];
+
+  // State Variables
+  let currentDriver = null;
+  let activeRequest = null;
+  let audioContext = null;
+  let audioUnlocked = false;
+  let pollInterval = null;
+  let countdownTimer = null;
+  let handledRequests = new Set();
+
+  function getApiKey() {
+    return localStorage.getItem('triwave-key') || 'triwave_secret_key';
+  }
+
+  // --- AUDIO SYNTHESIZER FOR DISPATCH CHIME ---
+  function initAudio() {
+    if (!audioContext) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) audioContext = new AudioCtx();
+    }
+    if (audioContext && audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+  }
+
+  function unlockAudio() {
+    initAudio();
+    audioUnlocked = true;
+    document.getElementById('audioBanner').style.display = 'none';
+    playChime(true);
+  }
+
+  function playChime(force = false) {
+    if (!audioUnlocked && !force) return;
+    try {
+      initAudio();
+      if (!audioContext) return;
+      
+      const now = audioContext.currentTime;
+      const osc1 = audioContext.createOscillator();
+      const osc2 = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+
+      osc1.type = 'triangle';
+      osc2.type = 'sine';
+
+      // 2-tone melodic dispatch ping
+      osc1.frequency.setValueAtTime(784, now);       // G5
+      osc1.frequency.setValueAtTime(1046.5, now + 0.15); // C6
+
+      osc2.frequency.setValueAtTime(784, now);
+      osc2.frequency.setValueAtTime(1046.5, now + 0.15);
+
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(audioContext.destination);
+
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.6);
+      osc2.stop(now + 0.6);
+
+      // Trigger vibration
+      if (navigator.vibrate) {
+        navigator.vibrate([250, 100, 250]);
+      }
+    } catch (e) {
+      console.warn('Audio play error:', e);
+    }
+  }
+
+  // --- DRIVER PROFILE SETUP ---
+  function loadDriverProfile() {
+    const saved = localStorage.getItem('triwave-driver-profile');
+    if (saved) {
+      try {
+        currentDriver = JSON.parse(saved);
+      } catch (e) {}
+    }
+    if (!currentDriver) {
+      // Default to 055 Jayvie Bobadilla
+      currentDriver = DRIVERS.find(d => d.id === '055') || DRIVERS[0];
+      localStorage.setItem('triwave-driver-profile', JSON.stringify(currentDriver));
+    }
+    renderDriverCard();
+  }
+
+  function renderDriverCard() {
+    if (!currentDriver) return;
+    document.getElementById('profileName').textContent = currentDriver.name;
+    document.getElementById('profileId').textContent = 'ID ' + currentDriver.id;
+    document.getElementById('profilePlate').textContent = currentDriver.plate;
+  }
+
+  function openDriverModal() {
+    renderDriverList(DRIVERS);
+    document.getElementById('driverModal').classList.add('open');
+  }
+
+  function closeDriverModal() {
+    document.getElementById('driverModal').classList.remove('open');
+  }
+
+  function selectDriver(id) {
+    const d = DRIVERS.find(item => item.id === id);
+    if (d) {
+      currentDriver = d;
+      localStorage.setItem('triwave-driver-profile', JSON.stringify(currentDriver));
+      renderDriverCard();
+      closeDriverModal();
+    }
+  }
+
+  function renderDriverList(list) {
+    const container = document.getElementById('driverListContainer');
+    container.innerHTML = list.map(d => `
+      <div class="driver-item ${currentDriver && currentDriver.id === d.id ? 'active' : ''}" onclick="selectDriver('${d.id}')">
+        <div class="driver-item-info">
+          <div class="driver-item-name">${d.name}</div>
+          <div class="driver-item-badges">
+            <span class="badge badge-id">ID ${d.id}</span>
+            <span class="badge badge-plate">${d.plate}</span>
+          </div>
+        </div>
+        <div style="color:var(--accent); font-weight:700;">${currentDriver && currentDriver.id === d.id ? '✓ Selected' : 'Choose'}</div>
+      </div>
+    `).join('');
+  }
+
+  function filterDrivers() {
+    const q = document.getElementById('driverSearch').value.toLowerCase().trim();
+    const filtered = DRIVERS.filter(d =>
+      d.name.toLowerCase().includes(q) ||
+      d.id.includes(q) ||
+      d.plate.toLowerCase().includes(q)
+    );
+    renderDriverList(filtered);
+  }
+
+  // --- REAL-TIME POLLING & DISPATCH ---
+  async function pollServer() {
+    const key = getApiKey();
+    try {
+      // 1. Check active-request endpoint
+      const res = await fetch('/api/active-request', {
+        headers: { 'x-api-key': key }
+      });
+
+      if (!res.ok) {
+        document.getElementById('statusPillText').textContent = 'API Error';
+        document.getElementById('statusPill').style.borderColor = 'rgba(239,68,68,0.5)';
+        return;
+      }
+
+      document.getElementById('statusPillText').textContent = 'Live Connected';
+      document.getElementById('statusPill').style.borderColor = 'rgba(16,185,129,0.3)';
+
+      const data = await res.json();
+
+      if (data.active && data.status === 'pending') {
+        showIncomingAlert(data);
+      } else if (data.active && data.status === 'accepted') {
+        if (activeRequest && activeRequest.reqId === data.reqId) {
+          if (data.acceptedBy === currentDriver.id) {
+            showAssignedView(data);
+          } else {
+            showTakenView(data);
+          }
+        }
+      } else {
+        // No pending request
+        if (!activeRequest || activeRequest.status !== 'accepted') {
+          showIdleView();
+        }
+      }
+    } catch (e) {
+      console.warn('Poll error:', e);
+      document.getElementById('statusPillText').textContent = 'Offline';
+    }
+  }
+
+  function showIncomingAlert(req) {
+    if (!activeRequest || activeRequest.reqId !== req.reqId) {
+      activeRequest = req;
+      playChime();
+    }
+
+    document.getElementById('viewIdle').style.display = 'none';
+    document.getElementById('viewAssigned').style.display = 'none';
+    document.getElementById('viewTaken').style.display = 'none';
+    document.getElementById('viewAlert').style.display = 'block';
+
+    document.getElementById('alertReqId').textContent = '#' + req.reqId;
+
+    // Countdown
+    startCountdown(req.expiresInSeconds || 180);
+  }
+
+  function startCountdown(seconds) {
+    clearInterval(countdownTimer);
+    let remaining = seconds;
+    const el = document.getElementById('alertCountdown');
+    
+    function update() {
+      if (remaining <= 0) {
+        clearInterval(countdownTimer);
+        el.textContent = 'Expired';
+        showIdleView();
+        return;
+      }
+      const m = Math.floor(remaining / 60);
+      const s = remaining % 60;
+      el.textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+      remaining--;
+    }
+    update();
+    countdownTimer = setInterval(update, 1000);
+  }
+
+  async function acceptActiveRequest() {
+    if (!activeRequest || !currentDriver) return;
+    const btn = document.getElementById('btnAccept');
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳ Confirming with School...</span>';
+
+    const reqId = activeRequest.reqId;
+    const driverId = currentDriver.id;
+    const message = `DRIVER,${reqId},${driverId}`;
+
+    try {
+      const res = await fetch('/api/send?to=school', {
+        method: 'POST',
+        headers: {
+          'x-api-key': getApiKey(),
+          'Content-Type': 'text/plain'
+        },
+        body: message
+      });
+
+      if (res.ok) {
+        clearInterval(countdownTimer);
+        activeRequest.status = 'accepted';
+        activeRequest.acceptedBy = driverId;
+        showAssignedView(activeRequest);
+      } else {
+        alert('Failed to accept: ' + await res.text());
+        btn.disabled = false;
+        btn.innerHTML = '<span>🛵 ACCEPT RIDE & RESPOND</span>';
+      }
+    } catch (e) {
+      alert('Network error: ' + e.message);
+      btn.disabled = false;
+      btn.innerHTML = '<span>🛵 ACCEPT RIDE & RESPOND</span>';
+    }
+  }
+
+  function showAssignedView(req) {
+    clearInterval(countdownTimer);
+    document.getElementById('viewIdle').style.display = 'none';
+    document.getElementById('viewAlert').style.display = 'none';
+    document.getElementById('viewTaken').style.display = 'none';
+    document.getElementById('viewAssigned').style.display = 'block';
+
+    document.getElementById('assignedReqId').textContent = '#' + req.reqId;
+    document.getElementById('assignedDriverName').textContent = currentDriver.name;
+    document.getElementById('assignedDriverId').textContent = '#' + currentDriver.id;
+    document.getElementById('assignedPlate').textContent = currentDriver.plate;
+  }
+
+  function showTakenView(req) {
+    clearInterval(countdownTimer);
+    document.getElementById('viewIdle').style.display = 'none';
+    document.getElementById('viewAlert').style.display = 'none';
+    document.getElementById('viewAssigned').style.display = 'none';
+    document.getElementById('viewTaken').style.display = 'flex';
+
+    const by = req.acceptedDriver ? `${req.acceptedDriver.name} (${req.acceptedDriver.plate})` : `Driver #${req.acceptedBy}`;
+    document.getElementById('takenMessage').textContent = `Request #${req.reqId} was already accepted by ${by}.`;
+  }
+
+  function showIdleView() {
+    clearInterval(countdownTimer);
+    activeRequest = null;
+    document.getElementById('viewAlert').style.display = 'none';
+    document.getElementById('viewAssigned').style.display = 'none';
+    document.getElementById('viewTaken').style.display = 'none';
+    document.getElementById('viewIdle').style.display = 'flex';
+  }
+
+  function finishRide() {
+    showIdleView();
+  }
+
+  function resetToIdle() {
+    showIdleView();
+  }
+
+  // --- SIMULATION / TESTING ---
+  async function testIncomingAlert() {
+    initAudio();
+    const testReqId = String(Math.floor(Math.random() * 900) + 100);
+    const testMsg = `REQUEST,${testReqId},CONFIRMED`;
+
+    try {
+      const res = await fetch('/api/send?to=terminal', {
+        method: 'POST',
+        headers: {
+          'x-api-key': getApiKey(),
+          'Content-Type': 'text/plain'
+        },
+        body: testMsg
+      });
+      if (res.ok) {
+        pollServer();
+      } else {
+        alert('Simulation failed: ' + await res.text());
+      }
+    } catch (e) {
+      alert('Error: ' + e.message);
+    }
+  }
+
+  // --- SETTINGS MODAL ---
+  function openSettingsModal() {
+    document.getElementById('inputApiKey').value = getApiKey();
+    document.getElementById('settingsModal').classList.add('open');
+  }
+
+  function closeSettingsModal() {
+    document.getElementById('settingsModal').classList.remove('open');
+  }
+
+  function saveSettings() {
+    const key = document.getElementById('inputApiKey').value.trim();
+    if (key) localStorage.setItem('triwave-key', key);
+    closeSettingsModal();
+    pollServer();
+  }
+
+  // Initialize
+  window.addEventListener('DOMContentLoaded', () => {
+    loadDriverProfile();
+    pollServer();
+    pollInterval = setInterval(pollServer, 2000);
+  });
+</script>
+</body>
+</html>
