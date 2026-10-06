@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TRIWAVE</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+  input { padding: .4rem; width: 14rem; }
+  pre { background: #111; color: #9f9; padding: 1rem; border-radius: 8px; min-height: 8rem; overflow-x: auto; }
+</style>
+</head>
+<body>
+  <h1>TRIWAVE</h1>
+  <p>Live messages between the school and terminal stations.</p>
+  <input id="key" type="password" placeholder="API key">
+  <button onclick="save()">Save</button>
+  <pre id="log">Enter the API key to see messages.</pre>
+<script>
+  const keyBox = document.getElementById('key');
+  keyBox.value = localStorage.getItem('triwave-key') || '';
+  function save() { localStorage.setItem('triwave-key', keyBox.value); load(); }
+  async function load() {
+    const key = localStorage.getItem('triwave-key');
+    if (!key) return;
+    const r = await fetch('/api/log', { headers: { 'x-api-key': key } });
+    document.getElementById('log').textContent =
+      r.ok ? ((await r.json()).join('\n') || 'No messages yet.') : 'Wrong key.';
+  }
+  load(); setInterval(load, 5000);
+</script>
+</body>
+</html>
