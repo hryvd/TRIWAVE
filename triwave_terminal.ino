@@ -118,7 +118,7 @@
 
 // ---- Website (LINK_HTTP): both stations talk through a site on Vercel ----
 #define WEB_HOST          "your-project.vercel.app"   // your Vercel address (no https://)
-#define WEB_KEY           "change-me"                 // same secret as API_KEY in Vercel
+#define WEB_KEY           "triwave_secret_key"        // same secret as API_KEY in Vercel
 #define WEB_ME            "terminal"
 #define WEB_PEER          "school"
 #define POLL_MS           5000UL                     // how often to check for messages

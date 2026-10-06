@@ -6,6 +6,6 @@ const redis = new Redis({
 });
 
 const STATIONS = ['school', 'terminal'];
-const authorized = (req) => req.headers['x-api-key'] === process.env.API_KEY;
+const authorized = (req) => req.headers['x-api-key'] === (process.env.API_KEY || 'triwave_secret_key');
 
 module.exports = { redis, STATIONS, authorized };
