@@ -3,31 +3,202 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TRIWAVE</title>
+<title>TRIWAVE Dashboard</title>
 <style>
-  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
-  input { padding: .4rem; width: 14rem; }
-  pre { background: #111; color: #9f9; padding: 1rem; border-radius: 8px; min-height: 8rem; overflow-x: auto; }
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent: #38bdf8;
+    --success: #22c55e;
+    --error: #ef4444;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    max-width: 720px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    line-height: 1.5;
+  }
+  h1 { margin-bottom: 0.25rem; color: #fff; font-size: 1.8rem; }
+  p.subtitle { color: var(--text-muted); margin-top: 0; margin-bottom: 1.5rem; font-size: 0.95rem; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  label { display: block; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.5rem; }
+  .row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  input[type="text"], input[type="password"] {
+    background: #0b1120;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.6rem 0.8rem;
+    color: #fff;
+    font-size: 0.95rem;
+    flex: 1;
+    min-width: 200px;
+  }
+  input:focus { outline: none; border-color: var(--accent); }
+  button {
+    background: #0284c7;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  button:hover { background: #0369a1; }
+  button.secondary { background: #334155; }
+  button.secondary:hover { background: #475569; }
+  .status-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+  .status-ok { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+  .status-err { background: rgba(239, 68, 68, 0.2); color: var(--error); }
+  pre {
+    background: #050811;
+    color: #4ade80;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    min-height: 10rem;
+    max-height: 24rem;
+    overflow-y: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.88rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+  }
+  .test-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
+  .notice { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; }
 </style>
 </head>
 <body>
-  <h1>TRIWAVE</h1>
-  <p>Live messages between the school and terminal stations.</p>
-  <input id="key" type="password" placeholder="API key">
-  <button onclick="save()">Save</button>
-  <pre id="log">Enter the API key to see messages.</pre>
+  <h1>TRIWAVE Live Station Monitor</h1>
+  <p class="subtitle">Live messaging link between School Station and Terminal Station</p>
+
+  <div class="card">
+    <label for="key">API Authentication</label>
+    <div class="row">
+      <input id="key" type="password" placeholder="Enter API Key (e.g. triwave_secret_key)">
+      <button onclick="save()">Save & Connect</button>
+    </div>
+    <div class="notice">Saved in browser storage for auto-reconnect.</div>
+  </div>
+
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <label>Live Event Log</label>
+      <span id="statusBadge" class="status-badge status-err">Checking...</span>
+    </div>
+    <pre id="log">Enter the API key above to load message log.</pre>
+  </div>
+
+  <div class="card">
+    <label>Diagnostic Test Tools</label>
+    <p style="font-size:0.85rem; color:var(--text-muted); margin:0 0 0.75rem 0;">Test the Vercel API and Redis queue directly from the browser to confirm server health:</p>
+    <div class="test-actions">
+      <button class="secondary" onclick="sendTest('terminal', 'REQUEST,001,CONFIRMED')">Simulate School &rarr; Terminal</button>
+      <button class="secondary" onclick="sendTest('school', 'DRIVER,001,023')">Simulate Terminal &rarr; School</button>
+    </div>
+    <div id="testResult" class="notice"></div>
+  </div>
+
 <script>
   const keyBox = document.getElementById('key');
-  keyBox.value = localStorage.getItem('triwave-key') || '';
-  function save() { localStorage.setItem('triwave-key', keyBox.value); load(); }
-  async function load() {
-    const key = localStorage.getItem('triwave-key');
-    if (!key) return;
-    const r = await fetch('/api/log', { headers: { 'x-api-key': key } });
-    document.getElementById('log').textContent =
-      r.ok ? ((await r.json()).join('\n') || 'No messages yet.') : 'Wrong key.';
+  const logBox = document.getElementById('log');
+  const statusBadge = document.getElementById('statusBadge');
+  const testResult = document.getElementById('testResult');
+
+  keyBox.value = localStorage.getItem('triwave-key') || 'triwave_secret_key';
+
+  function save() {
+    localStorage.setItem('triwave-key', keyBox.value.trim());
+    load();
   }
-  load(); setInterval(load, 5000);
+
+  async function load() {
+    const key = localStorage.getItem('triwave-key') || keyBox.value.trim();
+    if (!key) {
+      statusBadge.className = 'status-badge status-err';
+      statusBadge.textContent = 'Key Required';
+      logBox.textContent = 'Please enter and save your API key above.';
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/log', { headers: { 'x-api-key': key } });
+      if (res.ok) {
+        const data = await res.json();
+        statusBadge.className = 'status-badge status-ok';
+        statusBadge.textContent = 'API & Redis Online';
+        logBox.textContent = (Array.isArray(data) && data.length) ? data.join('\n') : 'Online. No messages logged yet.';
+      } else {
+        const err = await res.text();
+        statusBadge.className = 'status-badge status-err';
+        if (res.status === 401) {
+          statusBadge.textContent = 'Wrong API Key (401)';
+          logBox.textContent = 'Authentication failed: Invalid API key.';
+        } else if (res.status === 503) {
+          statusBadge.textContent = 'Redis Offline (503)';
+          logBox.textContent = 'Vercel API error: ' + err;
+        } else {
+          statusBadge.textContent = 'Error ' + res.status;
+          logBox.textContent = 'Server response (' + res.status + '): ' + err;
+        }
+      }
+    } catch (e) {
+      statusBadge.className = 'status-badge status-err';
+      statusBadge.textContent = 'Network Error';
+      logBox.textContent = 'Failed to reach API endpoint: ' + e.message;
+    }
+  }
+
+  async function sendTest(targetStation, message) {
+    const key = localStorage.getItem('triwave-key') || keyBox.value.trim();
+    testResult.textContent = 'Sending test to ' + targetStation + '...';
+    try {
+      const res = await fetch('/api/send?to=' + targetStation, {
+        method: 'POST',
+        headers: {
+          'x-api-key': key,
+          'Content-Type': 'text/plain'
+        },
+        body: message
+      });
+      if (res.ok) {
+        testResult.style.color = '#22c55e';
+        testResult.textContent = 'Success! Test message dispatched to ' + targetStation + ': "' + message + '"';
+        load();
+      } else {
+        const msg = await res.text();
+        testResult.style.color = '#ef4444';
+        testResult.textContent = 'Send failed (' + res.status + '): ' + msg;
+      }
+    } catch (e) {
+      testResult.style.color = '#ef4444';
+      testResult.textContent = 'Send error: ' + e.message;
+    }
+  }
+
+  load();
+  setInterval(load, 5000);
 </script>
 </body>
 </html>
