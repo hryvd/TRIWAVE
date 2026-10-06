@@ -112,7 +112,7 @@
 #define MQTT_ACK_TIMEOUT_MS 3000UL
 
 // ---- Website (LINK_HTTP): both stations talk through a site on Vercel ----
-#define WEB_HOST          "your-project.vercel.app"   // your Vercel address (no https://)
+#define WEB_HOST          "triwave.vercel.app"        // your Vercel address (no https://)
 #define WEB_KEY           "triwave_secret_key"        // same secret as API_KEY in Vercel
 #define WEB_ME            "school"
 #define WEB_PEER          "terminal"
