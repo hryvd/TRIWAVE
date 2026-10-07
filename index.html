@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TRIWAVE Dashboard</title>
+<title>TRIWAVE Dashboard - Pinamucan Integrated School</title>
 <style>
   :root {
     --bg: #0f172a;
@@ -91,12 +91,12 @@
 </head>
 <body>
   <h1>TRIWAVE Live Station Monitor</h1>
-  <p class="subtitle">Live messaging link between School Station and Terminal Station</p>
+  <p class="subtitle">Live messaging link between Pinamucan Integrated School Station and Terminal Station</p>
 
   <div style="background: linear-gradient(135deg, rgba(2, 132, 199, 0.15), rgba(6, 182, 212, 0.15)); border: 1px solid rgba(6, 182, 212, 0.35); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
     <div>
       <div style="font-weight: 700; font-size: 1rem; color: #fff;">📱 Tricycle Driver Mobile Portal</div>
-      <div style="font-size: 0.85rem; color: #94a3b8;">Drivers can monitor and accept student ride requests directly on their phones</div>
+      <div style="font-size: 0.85rem; color: #94a3b8;">Drivers can monitor and accept Pinamucan Integrated School student ride requests directly on their phones</div>
     </div>
     <a href="/driver.html" style="background: #0284c7; color: #fff; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(2,132,199,0.3);">Open Driver App &rarr;</a>
   </div>
@@ -122,8 +122,8 @@
     <label>Diagnostic Test Tools</label>
     <p style="font-size:0.85rem; color:var(--text-muted); margin:0 0 0.75rem 0;">Test the Vercel API and Redis queue directly from the browser to confirm server health:</p>
     <div class="test-actions">
-      <button class="secondary" onclick="sendTest('terminal', 'REQUEST,001,CONFIRMED')">Simulate School &rarr; Terminal</button>
-      <button class="secondary" onclick="sendTest('school', 'DRIVER,001,023')">Simulate Terminal &rarr; School</button>
+      <button class="secondary" onclick="sendTest('terminal', 'REQUEST,001,CONFIRMED')">Simulate Pinamucan IS &rarr; Terminal</button>
+      <button class="secondary" onclick="sendTest('school', 'DRIVER,001,023')">Simulate Terminal &rarr; Pinamucan IS</button>
     </div>
     <div id="testResult" class="notice"></div>
   </div>

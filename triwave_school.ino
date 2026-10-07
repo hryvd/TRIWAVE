@@ -1,5 +1,5 @@
 /*
- * TRIWAVE - SCHOOL STATION (ESP32)
+ * TRIWAVE - PINAMUCAN INTEGRATED SCHOOL STATION (ESP32)
  * ------------------------------------------------------------------
  * Student presses REQUEST -> 3-second cancel window -> request is
  * sent over SMS (SIM800L) or WiFi -> waits for the
@@ -105,7 +105,7 @@
 #define MQTT_PORT         8883
 #define MQTT_USER         "triwave"
 #define MQTT_PASS         "change-me"
-#define MQTT_PREFIX       "triwave-bsu"
+#define MQTT_PREFIX       "triwave-pinamucan"
 #define MQTT_CLIENT_ID    "triwave-school"
 #define MQTT_TOPIC_IN     MQTT_PREFIX "/to_school"
 #define MQTT_TOPIC_OUT    MQTT_PREFIX "/to_terminal"
@@ -249,7 +249,7 @@ void initializeLCD() {
   tft.begin(20000000);
   tft.setRotation(1);                              // landscape; use 3 if upside down
   tft.fillScreen(ILI9341_BLACK);
-  lcdShow("TRIWAVE", "STARTING...");
+  lcdShow("PINAMUCAN IS", "STARTING...");
 }
 
 void showTemp(const String &l1, const String &l2, uint32_t ms) {
@@ -880,7 +880,7 @@ void resetSystem() {                          // back to IDLE
 void renderSchool() {
   switch (state) {
     case ST_IDLE:
-      lcdShow("TRIWAVE", "PRESS REQUEST");
+      lcdShow("PINAMUCAN IS", "PRESS REQUEST");
       break;
     case ST_CANCEL_WINDOW:
       lcdShow("REQUESTED", "CANCEL: " + String(shownSec));

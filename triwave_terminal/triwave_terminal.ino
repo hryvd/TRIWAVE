@@ -110,7 +110,7 @@
 #define MQTT_PORT         8883
 #define MQTT_USER         "triwave"
 #define MQTT_PASS         "change-me"
-#define MQTT_PREFIX       "triwave-bsu"
+#define MQTT_PREFIX       "triwave-pinamucan"
 #define MQTT_CLIENT_ID    "triwave-terminal"
 #define MQTT_TOPIC_IN     MQTT_PREFIX "/to_terminal"
 #define MQTT_TOPIC_OUT    MQTT_PREFIX "/to_school"
